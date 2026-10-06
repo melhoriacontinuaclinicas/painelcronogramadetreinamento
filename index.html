@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma Interativo de Treinamentos - Outubro 2026</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandBlue: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        brandOrange: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .filter-btn-active {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+            border-color: #ea580c !important;
+            box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+        }
+        .status-filter-active {
+            background-color: #1e3a8a !important;
+            color: #ffffff !important;
+            border-color: #1e3a8a !important;
+            box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background-color: white !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="bg-gradient-to-r from-brandBlue-900 via-brandBlue-800 to-brandBlue-600 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,115,22,0.18),transparent)] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-brandOrange-600/30 border border-brandOrange-500/40 text-brandOrange-100 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+                        <i class="fa-regular fa-calendar-days"></i> Gestão de Pessoas & Treinamentos
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-3">
+                        Cronograma de Treinamentos
+                        <span id="admin-badge" class="hidden text-xs bg-brandOrange-600 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide shadow-sm">
+                            Modo Admin
+                        </span>
+                    </h1>
+                    <p class="text-brandBlue-100 mt-1 text-sm sm:text-base font-light">
+                        Mês de <span class="font-bold text-brandOrange-500">OUTUBRO / 2026</span> • Gestão Interativa com Status e Salas Virtuais
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button id="admin-toggle-btn" onclick="openAdminAuthModal()" class="flex items-center gap-2 bg-brandOrange-600 hover:bg-brandOrange-700 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm shadow-md">
+                        <i class="fa-solid fa-lock" id="admin-lock-icon"></i>
+                        <span id="admin-btn-text">Painel do Administrador</span>
+                    </button>
+                    <button onclick="window.print()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl border border-white/20 transition backdrop-blur-sm text-sm">
+                        <i class="fa-solid fa-print"></i>
+                        <span class="hidden sm:inline">Imprimir</span>
+                    </button>
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl border border-white/20 transition backdrop-blur-sm text-sm">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span class="hidden sm:inline">CSV</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- Statistics Banner -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-brandBlue-500/50 transition">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium uppercase tracking-wider">Total de Cursos</span>
+                    <i class="fa-solid fa-layer-group text-brandBlue-700"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span class="text-2xl font-extrabold text-slate-900" id="stat-total">0</span>
+                    <span class="text-xs text-slate-400">sessões</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between border-l-4 border-l-brandBlue-500">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium uppercase tracking-wider">Agendados</span>
+                    <i class="fa-regular fa-clock text-brandBlue-600"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span class="text-2xl font-extrabold text-brandBlue-600" id="stat-agendados">0</span>
+                    <span class="text-xs text-slate-400">pendentes</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between border-l-4 border-l-emerald-500">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium uppercase tracking-wider">Realizados</span>
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span class="text-2xl font-extrabold text-emerald-600" id="stat-realizados">0</span>
+                    <span class="text-xs text-slate-400">concluídos</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between border-l-4 border-l-rose-500">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium uppercase tracking-wider">Cancelados</span>
+                    <i class="fa-solid fa-ban text-rose-600"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span class="text-2xl font-extrabold text-rose-600" id="stat-cancelados">0</span>
+                    <span class="text-xs text-slate-400">suspensos</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin-panel" class="hidden bg-gradient-to-br from-brandBlue-900 to-slate-900 text-white p-6 rounded-2xl shadow-xl mb-8 no-print border border-brandOrange-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-700/80 mb-6">
+                <div>
+                    <span class="bg-brandOrange-600 text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide">
+                        Área do Administrador
+                    </span>
+                    <h2 class="text-xl font-bold mt-1 text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brandOrange-500"></i> Cadastrar / Gerenciar Treinamento
+                    </h2>
+                    <p class="text-xs text-slate-300">Cadastre novos treinamentos, defina o status (Agendado, Realizado, Cancelado) e adicione o link da sala</p>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair do Admin
+                </button>
+            </div>
+
+            <!-- New Training Form -->
+            <form id="add-training-form" onsubmit="handleSaveTraining(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <input type="hidden" id="form-edit-id" value="">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Data (Ex: 02/10 (Sex)) *</label>
+                    <input type="text" id="form-date" placeholder="Ex: 02/10 (Sex)" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Horário (Ex: 10h ou 15h) *</label>
+                    <input type="text" id="form-time" placeholder="Ex: 10h" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Público-Alvo / Função *</label>
+                    <select id="form-role" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                        <option value="Recepção">Recepção</option>
+                        <option value="Médicos">Médicos</option>
+                        <option value="Enfermagem">Enfermagem</option>
+                        <option value="ASG">ASG / Hotelaria</option>
+                        <option value="Assistencial">Assistencial</option>
+                        <option value="Geral">Geral / Todos</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2 lg:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nome / Título do Treinamento *</label>
+                    <input type="text" id="form-title" placeholder="Ex: Integração + Recepção" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Instrutor Responsável *</label>
+                    <input type="text" id="form-instructor" placeholder="Ex: Jorge Emanoel" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Status do Treinamento *</label>
+                    <select id="form-status" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                        <option value="Agendado">📅 Agendado / Pendente</option>
+                        <option value="Realizado">✅ Realizado / Concluído</option>
+                        <option value="Cancelado">🚫 Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2 lg:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">
+                        <i class="fa-solid fa-video text-brandOrange-500 mr-1"></i> Link da Sala Virtual (Meet / Teams / Zoom)
+                    </label>
+                    <input type="url" id="form-room-link" placeholder="https://meet.google.com/... ou https://teams.microsoft.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                </div>
+
+                <div class="md:col-span-2 lg:col-span-3 flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="resetForm()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-xs font-semibold transition">
+                        Limpar / Cancelar Edição
+                    </button>
+                    <button type="submit" id="form-submit-btn" class="px-6 py-2 bg-brandOrange-600 hover:bg-brandOrange-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-plus-circle"></i> Cadastrar Treinamento
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 mb-8 no-print">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-brandOrange-600"></i>
+                        Filtros de Treinamentos
+                    </h2>
+                    <p class="text-xs text-slate-500">Selecione uma função ou status para filtrar o cronograma</p>
+                </div>
+
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl w-fit self-start lg:self-auto">
+                    <button id="view-cards-btn" onclick="setViewMode('cards')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-white text-brandBlue-900 shadow-sm">
+                        <i class="fa-solid fa-grip"></i> Cards
+                    </button>
+                    <button id="view-table-btn" onclick="setViewMode('table')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-table-list"></i> Tabela
+                    </button>
+                </div>
+            </div>
+
+            <!-- Role Filter Buttons -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button onclick="setRoleFilter('todos')" data-role="todos" class="role-filter-btn filter-btn-active px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Todas as Funções</span>
+                </button>
+
+                <button onclick="setRoleFilter('Recepção')" data-role="Recepção" class="role-filter-btn px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-concierge-bell text-blue-600"></i>
+                    <span>Recepção</span>
+                </button>
+
+                <button onclick="setRoleFilter('Médicos')" data-role="Médicos" class="role-filter-btn px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-user-doctor text-emerald-600"></i>
+                    <span>Médicos</span>
+                </button>
+
+                <button onclick="setRoleFilter('Enfermagem')" data-role="Enfermagem" class="role-filter-btn px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-user-nurse text-teal-600"></i>
+                    <span>Enfermagem</span>
+                </button>
+
+                <button onclick="setRoleFilter('ASG')" data-role="ASG" class="role-filter-btn px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-broom text-amber-600"></i>
+                    <span>ASG / Hotelaria</span>
+                </button>
+
+                <button onclick="setRoleFilter('Assistencial')" data-role="Assistencial" class="role-filter-btn px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium transition flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700">
+                    <i class="fa-solid fa-hand-holding-medical text-indigo-600"></i>
+                    <span>Assistencial</span>
+                </button>
+            </div>
+
+            <!-- Status Filter Buttons -->
+            <div class="flex flex-wrap items-center gap-2 pb-4 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Status:</span>
+                <button onclick="setStatusFilter('todos')" data-status="todos" class="status-filter-btn status-filter-active px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold transition bg-white text-slate-700">
+                    Todos os Status
+                </button>
+                <button onclick="setStatusFilter('Agendado')" data-status="Agendado" class="status-filter-btn px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold transition bg-white text-brandBlue-700 hover:bg-brandBlue-50">
+                    📅 Agendados
+                </button>
+                <button onclick="setStatusFilter('Realizado')" data-status="Realizado" class="status-filter-btn px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold transition bg-white text-emerald-700 hover:bg-emerald-50">
+                    ✅ Realizados
+                </button>
+                <button onclick="setStatusFilter('Cancelado')" data-status="Cancelado" class="status-filter-btn px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold transition bg-white text-rose-700 hover:bg-rose-50">
+                    🚫 Cancelados
+                </button>
+            </div>
+
+            <!-- Search Inputs -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
+                <div class="relative md:col-span-2">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" oninput="applyFilters()" placeholder="Buscar por título, instrutor ou palavra-chave..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brandBlue-500 focus:border-transparent text-sm">
+                </div>
+
+                <div class="relative">
+                    <i class="fa-solid fa-chalkboard-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <select id="instructor-select" onchange="applyFilters()" class="w-full pl-10 pr-8 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brandBlue-500 focus:border-transparent text-sm appearance-none bg-white">
+                        <option value="todos">Todos os Instrutores</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                </div>
+            </div>
+        </section>
+
+        <section id="results-container">
+            <!-- Empty state -->
+            <div id="no-results" class="hidden bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300 my-6">
+                <div class="w-16 h-16 bg-brandOrange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-brandOrange-600 text-2xl">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Nenhum treinamento encontrado</h3>
+                <p class="text-sm text-slate-500 max-w-md mx-auto mt-1">Tente alterar ou limpar os filtros selecionados para visualizar os treinamentos.</p>
+                <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-brandBlue-900 text-white rounded-xl text-xs font-semibold hover:bg-brandBlue-800 transition">
+                    Limpar Filtros
+                </button>
+            </div>
+
+            <!-- Cards Grid View -->
+            <div id="cards-view" class="space-y-8"></div>
+
+            <!-- Table View -->
+            <div id="table-view" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider font-semibold text-slate-600">
+                            <tr>
+                                <th class="py-3.5 px-4">Data</th>
+                                <th class="py-3.5 px-4">Horário</th>
+                                <th class="py-3.5 px-4">Treinamento</th>
+                                <th class="py-3.5 px-4">Público-Alvo</th>
+                                <th class="py-3.5 px-4">Instrutor</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Sala Virtual</th>
+                                <th class="py-3.5 px-4 no-print text-right">Ações Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 transform transition-all">
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-brandOrange-50 border border-brandOrange-200 rounded-full flex items-center justify-center mx-auto text-brandOrange-600 text-2xl mb-3">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">Acesso Restrito ao Administrador</h3>
+                <p class="text-xs text-slate-500 mt-1">Informe a senha para cadastrar, editar e alterar status dos treinamentos.</p>
+            </div>
+
+            <form onsubmit="verifyAdminPassword(event)">
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Senha de Acesso</label>
+                    <div class="relative">
+                        <input type="password" id="admin-password-input" placeholder="Digite a senha..." required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandOrange-500 text-sm">
+                        <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    </div>
+                    <p id="auth-error-msg" class="hidden text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> Senha incorreta! Tente novamente.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="closeAdminAuthModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-brandOrange-600 hover:bg-brandOrange-700 text-white text-xs font-bold rounded-xl transition shadow-md">
+                        Acessar Painel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 mt-12 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs">
+            <p>© 2026 Setor de Treinamento e Desenvolvimento • Todos os direitos reservados</p>
+            <p class="mt-1 text-slate-500">Desenvolvido com suporte a salas virtuais, status e gerenciamento interativo</p>
+        </div>
+    </footer>
+
+    <script>
+        const ADMIN_PASSWORD_HASH = "melhoria@2026";
+        let isAdminLoggedIn = false;
+
+        // Default Training Dataset with Initial Statuses
+        const initialTrainings = [
+            // 01/10 (Qui)
+            { id: "1", date: "01/10 (Qui)", dayNum: "01", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "2", date: "01/10 (Qui)", dayNum: "01", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra", roomLink: "", status: "Agendado" },
+
+            // 05/10 (Seg)
+            { id: "3", date: "05/10 (Seg)", dayNum: "05", time: "10h", title: "Acolhimento para Pacientes de Risco e Prioritários", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "4", date: "05/10 (Seg)", dayNum: "05", time: "15h", title: "Direitos e Deveres do Paciente e Acompanhante", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+
+            // 06/10 (Ter)
+            { id: "5", date: "06/10 (Ter)", dayNum: "06", time: "10h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Realizado" },
+            { id: "6", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Realizado" },
+            { id: "7", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Realizado" },
+            { id: "8", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Lucas Castro", roomLink: "", status: "Realizado" },
+            { id: "9", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Realizado" },
+
+            // 07/10 (Qua)
+            { id: "10", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Primeiros Socorros", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "11", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "12", date: "07/10 (Qua)", dayNum: "07", time: "15h", title: "Eventos Adversos", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "13", date: "07/10 (Qua)", dayNum: "07", time: "15h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "14", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+
+            // 08/10 (Qui)
+            { id: "15", date: "08/10 (Qui)", dayNum: "08", time: "10h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "16", date: "08/10 (Qui)", dayNum: "08", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "17", date: "08/10 (Qui)", dayNum: "08", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "18", date: "08/10 (Qui)", dayNum: "08", time: "15h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "19", date: "08/10 (Qui)", dayNum: "08", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+
+            // 13/10 (Ter)
+            { id: "20", date: "13/10 (Ter)", dayNum: "13", time: "10h", title: "Módulo 4 - Limpeza de Equipamentos de Transporte e Coleta", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "21", date: "13/10 (Ter)", dayNum: "13", time: "15h", title: "Módulo 4 - Limpeza de Equipamentos de Transporte e Coleta", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "22", date: "13/10 (Ter)", dayNum: "13", time: "15h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+            { id: "23", date: "13/10 (Ter)", dayNum: "13", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+
+            // 14/10 (Qua)
+            { id: "24", date: "14/10 (Qua)", dayNum: "14", time: "10h", title: "Módulo 5 - Organização e Limpeza de Equipamentos de Suporte", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "25", date: "14/10 (Qua)", dayNum: "14", time: "10h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+            { id: "26", date: "14/10 (Qua)", dayNum: "14", time: "10h", title: "Gerenciamento de Resíduos", role: "Assistencial", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "27", date: "14/10 (Qua)", dayNum: "14", time: "15h", title: "Módulo 5 - Organização e Limpeza de Equipamentos de Suporte", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "28", date: "14/10 (Qua)", dayNum: "14", time: "15h", title: "Lavagem de Mãos/R32 – Adornos Zero", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+
+            // 15/10 (Qui)
+            { id: "29", date: "15/10 (Qui)", dayNum: "15", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "30", date: "15/10 (Qui)", dayNum: "15", time: "10h", title: "Módulo 6 - Limpeza Concorrente e Terminal de PQA e Política de Meio Ambiente", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "31", date: "15/10 (Qui)", dayNum: "15", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "32", date: "15/10 (Qui)", dayNum: "15", time: "15h", title: "Módulo 6 - Limpeza Concorrente e Terminal de PQA e Política de Meio Ambiente", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "33", date: "15/10 (Qui)", dayNum: "15", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+
+            // 20/10 (Ter)
+            { id: "34", date: "20/10 (Ter)", dayNum: "20", time: "10h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "35", date: "20/10 (Ter)", dayNum: "20", time: "10h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "36", date: "20/10 (Ter)", dayNum: "20", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "37", date: "20/10 (Ter)", dayNum: "20", time: "15h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "38", date: "20/10 (Ter)", dayNum: "20", time: "15h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+
+            // 21/10 (Qua)
+            { id: "39", date: "21/10 (Qua)", dayNum: "21", time: "10h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "40", date: "21/10 (Qua)", dayNum: "21", time: "10h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+            { id: "41", date: "21/10 (Qua)", dayNum: "21", time: "15h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+
+            // 22/10 (Qui)
+            { id: "42", date: "22/10 (Qui)", dayNum: "22", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "43", date: "22/10 (Qui)", dayNum: "22", time: "10h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "44", date: "22/10 (Qui)", dayNum: "22", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "45", date: "22/10 (Qui)", dayNum: "22", time: "15h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "46", date: "22/10 (Qui)", dayNum: "22", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+
+            // 26/10 (Seg)
+            { id: "47", date: "26/10 (Seg)", dayNum: "26", time: "10h", title: "Acolhimento para Pacientes de Risco e Prioritários", role: "Assistencial", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "48", date: "26/10 (Seg)", dayNum: "26", time: "15h", title: "Eventos Adversos", role: "Assistencial", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+
+            // 27/10 (Ter)
+            { id: "49", date: "27/10 (Ter)", dayNum: "27", time: "10h", title: "Módulo 4 - Limpeza de Equipamentos de Transporte e Coleta", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "50", date: "27/10 (Ter)", dayNum: "27", time: "10h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "51", date: "27/10 (Ter)", dayNum: "27", time: "15h", title: "Módulo 4 - Limpeza de Equipamentos de Transporte e Coleta", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "52", date: "27/10 (Ter)", dayNum: "27", time: "15h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+            { id: "53", date: "27/10 (Ter)", dayNum: "27", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+
+            // 28/10 (Qua)
+            { id: "54", date: "28/10 (Qua)", dayNum: "28", time: "10h", title: "Módulo 5 - Organização e Limpeza de Equipamentos de Suporte", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "55", date: "28/10 (Qua)", dayNum: "28", time: "10h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
+            { id: "56", date: "28/10 (Qua)", dayNum: "28", time: "10h", title: "Primeiros Socorros", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "57", date: "28/10 (Qua)", dayNum: "28", time: "15h", title: "Módulo 5 - Organização e Limpeza de Equipamentos de Suporte", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "58", date: "28/10 (Qua)", dayNum: "28", time: "15h", title: "Gerenciamento de Resíduos", role: "Assistencial", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+
+            // 29/10 (Qui)
+            { id: "59", date: "29/10 (Qui)", dayNum: "29", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "60", date: "29/10 (Qui)", dayNum: "29", time: "10h", title: "Módulo 6 - Limpeza Concorrente e Terminal de PQA e Política de Meio Ambiente", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "61", date: "29/10 (Qui)", dayNum: "29", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "62", date: "29/10 (Qui)", dayNum: "29", time: "15h", title: "Módulo 6 - Limpeza Concorrente e Terminal de PQA e Política de Meio Ambiente", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
+            { id: "63", date: "29/10 (Qui)", dayNum: "29", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" }
+        ];
+
+        // Retrieve stored data or load defaults
+        let currentTrainings = JSON.parse(localStorage.getItem('outubro_2026_trainings_v2')) || initialTrainings;
+
+        let selectedRole = 'todos';
+        let selectedStatus = 'todos';
+        let currentView = 'cards';
+
+        const roleMeta = {
+            'Recepção': { icon: 'fa-concierge-bell', bg: 'bg-blue-50/70', border: 'border-blue-200', badgeBg: 'bg-blue-100', badgeText: 'text-blue-800' },
+            'Médicos': { icon: 'fa-user-doctor', bg: 'bg-emerald-50/70', border: 'border-emerald-200', badgeBg: 'bg-emerald-100', badgeText: 'text-emerald-800' },
+            'Enfermagem': { icon: 'fa-user-nurse', bg: 'bg-teal-50/70', border: 'border-teal-200', badgeBg: 'bg-teal-100', badgeText: 'text-teal-800' },
+            'ASG': { icon: 'fa-broom', bg: 'bg-amber-50/70', border: 'border-amber-200', badgeBg: 'bg-amber-100', badgeText: 'text-amber-900' },
+            'Assistencial': { icon: 'fa-hand-holding-medical', bg: 'bg-indigo-50/70', border: 'border-indigo-200', badgeBg: 'bg-indigo-100', badgeText: 'text-indigo-800' },
+            'Geral': { icon: 'fa-users', bg: 'bg-slate-50', border: 'border-slate-200', badgeBg: 'bg-slate-100', badgeText: 'text-slate-800' }
+        };
+
+        const statusMeta = {
+            'Agendado': { label: 'Agendado', bg: 'bg-brandBlue-50 text-brandBlue-800 border-brandBlue-200', icon: 'fa-regular fa-clock' },
+            'Realizado': { label: 'Realizado', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: 'fa-solid fa-circle-check' },
+            'Cancelado': { label: 'Cancelado', bg: 'bg-rose-50 text-rose-800 border-rose-200', icon: 'fa-solid fa-ban' }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initStats();
+            populateInstructors();
+            applyFilters();
+        });
+
+        function saveData() {
+            localStorage.setItem('outubro_2026_trainings_v2', JSON.stringify(currentTrainings));
+            initStats();
+            populateInstructors();
+            applyFilters();
+        }
+
+        function openAdminAuthModal() {
+            if (isAdminLoggedIn) {
+                const panel = document.getElementById('admin-panel');
+                panel.classList.toggle('hidden');
+                panel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+                document.getElementById('admin-password-input').focus();
+            }
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-error-msg').classList.add('hidden');
+            document.getElementById('admin-password-input').value = '';
+        }
+
+        function verifyAdminPassword(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-password-input').value;
+
+            if (pass === ADMIN_PASSWORD_HASH) {
+                isAdminLoggedIn = true;
+                closeAdminAuthModal();
+                
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-badge').classList.remove('hidden');
+                document.getElementById('admin-btn-text').innerText = 'Painel Admin (Ativo)';
+                document.getElementById('admin-lock-icon').className = 'fa-solid fa-unlock-keyhole';
+                
+                showToast("Modo Administrador ativado com sucesso!", "success");
+                applyFilters();
+            } else {
+                document.getElementById('auth-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('admin-badge').classList.add('hidden');
+            document.getElementById('admin-btn-text').innerText = 'Painel do Administrador';
+            document.getElementById('admin-lock-icon').className = 'fa-solid fa-lock';
+            resetForm();
+            showToast("Sessão do administrador encerrada.", "info");
+            applyFilters();
+        }
+
+        function editTraining(id) {
+            if (!isAdminLoggedIn) return;
+
+            const target = currentTrainings.find(t => t.id === id);
+            if (!target) return;
+
+            document.getElementById('form-edit-id').value = target.id;
+            document.getElementById('form-date').value = target.date;
+            document.getElementById('form-time').value = target.time;
+            document.getElementById('form-role').value = target.role;
+            document.getElementById('form-title').value = target.title;
+            document.getElementById('form-instructor').value = target.instructor;
+            document.getElementById('form-room-link').value = target.roomLink || '';
+            document.getElementById('form-status').value = target.status || 'Agendado';
+
+            document.getElementById('form-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
+            
+            const panel = document.getElementById('admin-panel');
+            panel.classList.remove('hidden');
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleSaveTraining(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('form-edit-id').value;
+            const date = document.getElementById('form-date').value.trim();
+            const time = document.getElementById('form-time').value.trim();
+            const role = document.getElementById('form-role').value;
+            const title = document.getElementById('form-title').value.trim();
+            const instructor = document.getElementById('form-instructor').value.trim();
+            const roomLink = document.getElementById('form-room-link').value.trim();
+            const status = document.getElementById('form-status').value;
+
+            const dayMatch = date.match(/\d+/);
+            const dayNum = dayMatch ? (dayMatch[0].length === 1 ? '0' + dayMatch[0] : dayMatch[0]) : '01';
+
+            if (editId) {
+                // Update existing training
+                const index = currentTrainings.findIndex(t => t.id === editId);
+                if (index !== -1) {
+                    currentTrainings[index] = {
+                        ...currentTrainings[index],
+                        date,
+                        dayNum,
+                        time,
+                        title,
+                        role,
+                        instructor,
+                        roomLink,
+                        status
+                    };
+                    showToast("Treinamento atualizado com sucesso!", "success");
+                }
+            } else {
+                // Add new training
+                const newItem = {
+                    id: Date.now().toString(),
+                    date,
+                    dayNum,
+                    time,
+                    title,
+                    role,
+                    instructor,
+                    roomLink,
+                    status
+                };
+                currentTrainings.push(newItem);
+                showToast("Novo treinamento cadastrado com sucesso!", "success");
+            }
+
+            saveData();
+            resetForm();
+        }
+
+        function deleteTraining(id) {
+            if (!isAdminLoggedIn) return;
+            
+            if (confirm("Deseja realmente remover este treinamento da agenda?")) {
+                currentTrainings = currentTrainings.filter(item => item.id !== id);
+                saveData();
+                showToast("Treinamento removido com sucesso.", "info");
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('add-training-form').reset();
+            document.getElementById('form-edit-id').value = '';
+            document.getElementById('form-submit-btn').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Cadastrar Treinamento';
+        }
+
+        function initStats() {
+            document.getElementById('stat-total').innerText = currentTrainings.length;
+            document.getElementById('stat-agendados').innerText = currentTrainings.filter(t => t.status === 'Agendado' || !t.status).length;
+            document.getElementById('stat-realizados').innerText = currentTrainings.filter(t => t.status === 'Realizado').length;
+            document.getElementById('stat-cancelados').innerText = currentTrainings.filter(t => t.status === 'Cancelado').length;
+        }
+
+        function populateInstructors() {
+            const select = document.getElementById('instructor-select');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="todos">Todos os Instrutores</option>';
+
+            const instructors = [...new Set(currentTrainings.map(t => t.instructor))].sort();
+            instructors.forEach(inst => {
+                const opt = document.createElement('option');
+                opt.value = inst;
+                opt.textContent = inst;
+                select.appendChild(opt);
+            });
+
+            select.value = currentVal || 'todos';
+        }
+
+        function setRoleFilter(role) {
+            selectedRole = role;
+            document.querySelectorAll('.role-filter-btn').forEach(btn => {
+                if (btn.dataset.role === role) {
+                    btn.classList.add('filter-btn-active');
+                } else {
+                    btn.classList.remove('filter-btn-active');
+                }
+            });
+            applyFilters();
+        }
+
+        function setStatusFilter(status) {
+            selectedStatus = status;
+            document.querySelectorAll('.status-filter-btn').forEach(btn => {
+                if (btn.dataset.status === status) {
+                    btn.classList.add('status-filter-active');
+                } else {
+                    btn.classList.remove('status-filter-active');
+                }
+            });
+            applyFilters();
+        }
+
+        function setViewMode(mode) {
+            currentView = mode;
+            const cardsView = document.getElementById('cards-view');
+            const tableView = document.getElementById('table-view');
+            const cardsBtn = document.getElementById('view-cards-btn');
+            const tableBtn = document.getElementById('view-table-btn');
+
+            if (mode === 'cards') {
+                cardsView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+                cardsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-white text-brandBlue-900 shadow-sm";
+                tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900";
+            } else {
+                cardsView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+                tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-white text-brandBlue-900 shadow-sm";
+                cardsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900";
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('instructor-select').value = 'todos';
+            setRoleFilter('todos');
+            setStatusFilter('todos');
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const instructorVal = document.getElementById('instructor-select').value;
+
+            const filtered = currentTrainings.filter(item => {
+                let matchesRole = (selectedRole === 'todos') || (item.role === selectedRole);
+                let matchesStatus = (selectedStatus === 'todos') || ((item.status || 'Agendado') === selectedStatus);
+                let matchesInstructor = (instructorVal === 'todos') || (item.instructor === instructorVal);
+                let matchesSearch = !searchVal || 
+                    item.title.toLowerCase().includes(searchVal) ||
+                    item.instructor.toLowerCase().includes(searchVal) ||
+                    item.role.toLowerCase().includes(searchVal) ||
+                    item.date.toLowerCase().includes(searchVal);
+
+                return matchesRole && matchesStatus && matchesInstructor && matchesSearch;
+            });
+
+            document.getElementById('no-results').classList.toggle('hidden', filtered.length > 0);
+
+            renderCardsView(filtered);
+            renderTableView(filtered);
+        }
+
+        function getRoleMeta(role) {
+            return roleMeta[role] || roleMeta['Geral'];
+        }
+
+        function getStatusMeta(status) {
+            return statusMeta[status] || statusMeta['Agendado'];
+        }
+
+        function renderCardsView(data) {
+            const container = document.getElementById('cards-view');
+            container.innerHTML = '';
+
+            if (data.length === 0) return;
+
+            // Group items by Date
+            const grouped = data.reduce((acc, obj) => {
+                if (!acc[obj.date]) acc[obj.date] = [];
+                acc[obj.date].push(obj);
+                return acc;
+            }, {});
+
+            Object.keys(grouped).forEach(dateStr => {
+                const dayGroup = grouped[dateStr];
+                const section = document.createElement('div');
+                section.className = "bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm transition";
+
+                const header = `
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-brandBlue-900 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+                                ${dayGroup[0].dayNum}
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">${dateStr}</h3>
+                                <p class="text-xs text-slate-500">${dayGroup.length} treinamento(s) listado(s)</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                let cardsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+                
+                dayGroup.forEach(item => {
+                    const meta = getRoleMeta(item.role);
+                    const stMeta = getStatusMeta(item.status || 'Agendado');
+                    const hasRoomLink = item.roomLink && item.roomLink.length > 5;
+
+                    cardsHtml += `
+                        <div class="flex flex-col justify-between p-4 rounded-xl border ${meta.border} ${meta.bg} relative group">
+                            <div>
+                                <div class="flex items-center justify-between gap-1 mb-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-white text-slate-800 shadow-sm border border-slate-200">
+                                        <i class="fa-regular fa-clock text-brandOrange-600"></i> ${item.time}
+                                    </span>
+
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold border ${stMeta.bg}">
+                                        <i class="${stMeta.icon}"></i> ${stMeta.label}
+                                    </span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${meta.badgeBg} ${meta.badgeText} mb-1">
+                                        <i class="fa-solid ${meta.icon}"></i> ${item.role}
+                                    </span>
+                                    <h4 class="font-bold text-slate-900 text-sm leading-snug">
+                                        ${item.title}
+                                    </h4>
+                                </div>
+
+                                <div class="text-xs text-slate-600 flex items-center gap-1.5 mb-3">
+                                    <i class="fa-solid fa-chalkboard-user text-slate-400"></i>
+                                    <span>Instrutor: <strong>${item.instructor}</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2 mt-2">
+                                ${hasRoomLink ? `
+                                    <a href="${item.roomLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">
+                                        <i class="fa-solid fa-video"></i> Acessar Sala
+                                    </a>
+                                ` : `
+                                    <span class="text-[11px] text-slate-400 italic">Presencial</span>
+                                `}
+
+                                ${isAdminLoggedIn ? `
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="editTraining('${item.id}')" title="Editar Treinamento" class="text-brandBlue-700 hover:text-brandBlue-900 p-1.5 rounded hover:bg-white/80 transition text-xs font-semibold flex items-center gap-1">
+                                            <i class="fa-solid fa-pen-to-square"></i> Editar
+                                        </button>
+                                        <button onclick="deleteTraining('${item.id}')" title="Excluir" class="text-rose-600 hover:text-rose-800 p-1.5 rounded hover:bg-white/80 transition text-xs">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                cardsHtml += '</div>';
+                section.innerHTML = header + cardsHtml;
+                container.appendChild(section);
+            });
+        }
+
+        function renderTableView(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const meta = getRoleMeta(item.role);
+                const stMeta = getStatusMeta(item.status || 'Agendado');
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition";
+
+                const hasRoomLink = item.roomLink && item.roomLink.length > 5;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">${item.date}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">
+                            ${item.time}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-medium text-slate-900">${item.title}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold ${meta.badgeBg} ${meta.badgeText}">
+                            <i class="fa-solid ${meta.icon}"></i> ${item.role}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600 whitespace-nowrap">${item.instructor}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${stMeta.bg}">
+                            <i class="${stMeta.icon}"></i> ${stMeta.label}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        ${hasRoomLink ? `
+                            <a href="${item.roomLink}" target="_blank" class="inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 transition">
+                                <i class="fa-solid fa-video"></i> Entrar na Sala
+                            </a>
+                        ` : '<span class="text-xs text-slate-400">Presencial</span>'}
+                    </td>
+                    <td class="py-3 px-4 no-print text-right whitespace-nowrap">
+                        ${isAdminLoggedIn ? `
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="editTraining('${item.id}')" title="Editar" class="text-brandBlue-700 hover:text-brandBlue-900 text-xs font-semibold px-2 py-1 bg-brandBlue-50 hover:bg-brandBlue-100 rounded transition">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </button>
+                                <button onclick="deleteTraining('${item.id}')" title="Excluir" class="text-rose-600 hover:text-rose-800 text-xs px-2 py-1 hover:bg-rose-50 rounded transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        ` : `
+                            <span class="text-xs text-slate-300">-</span>
+                        `}
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Data;Horario;Treinamento;Publico-Alvo;Instrutor;Status;LinkSala\n";
+
+            currentTrainings.forEach(item => {
+                const row = `"${item.date}";"${item.time}";"${item.title}";"${item.role}";"${item.instructor}";"${item.status || 'Agendado'}";"${item.roomLink || ''}"`;
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "cronograma_treinamentos_outubro_2026.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showToast(message, type = "info") {
+            const toast = document.createElement('div');
+            const bgClass = type === "success" ? "bg-emerald-600" : "bg-brandBlue-900";
+            
+            toast.className = `fixed bottom-5 right-5 ${bgClass} text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-white/20 text-xs font-semibold animate-bounce`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'} text-base"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 4000);
+        }
+    </script>
+</body>
+</html>
