@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cronograma Interativo de Treinamentos - Outubro 2026</title>
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -44,7 +45,7 @@
             background-color: #ea580c !important;
             color: #ffffff !important;
             border-color: #ea580c !important;
-            box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
         }
         .status-filter-active {
             background-color: #1e3a8a !important;
@@ -52,28 +53,29 @@
             border-color: #1e3a8a !important;
             box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .live-dot {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
         @media print {
-            .no-print {
-                display: none !important;
-            }
-            .print-only {
-                display: block !important;
-            }
-            body {
-                background-color: white !important;
-            }
+            .no-print { display: none !important; }
+            body { background-color: white !important; }
         }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
     <header class="bg-gradient-to-r from-brandBlue-900 via-brandBlue-800 to-brandBlue-600 text-white shadow-lg relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,115,22,0.18),transparent)] pointer-events-none"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,115,22,0.2),transparent)] pointer-events-none"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <div class="inline-flex items-center gap-2 bg-brandOrange-600/30 border border-brandOrange-500/40 text-brandOrange-100 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
-                        <i class="fa-regular fa-calendar-days"></i> Gestão de Pessoas & Treinamentos
+                        <i class="fa-solid fa-video text-brandOrange-400"></i> Com Links de Acesso Direto às Salas
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-3">
                         Cronograma de Treinamentos
@@ -82,7 +84,7 @@
                         </span>
                     </h1>
                     <p class="text-brandBlue-100 mt-1 text-sm sm:text-base font-light">
-                        Mês de <span class="font-bold text-brandOrange-500">OUTUBRO / 2026</span> • Gestão Interativa com Status e Salas Virtuais
+                        Mês de <span class="font-bold text-brandOrange-400">OUTUBRO / 2026</span> • Acesso Direto à Sala Virtual em Destaque
                     </p>
                 </div>
 
@@ -157,25 +159,25 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-700/80 mb-6">
                 <div>
                     <span class="bg-brandOrange-600 text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide">
-                        Área do Administrador
+                        Área de Gestão
                     </span>
                     <h2 class="text-xl font-bold mt-1 text-white flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-brandOrange-500"></i> Cadastrar / Gerenciar Treinamento
+                        <i class="fa-solid fa-sliders text-brandOrange-500"></i> Cadastrar / Editar Treinamento & Sala
                     </h2>
-                    <p class="text-xs text-slate-300">Cadastre novos treinamentos, defina o status (Agendado, Realizado, Cancelado) e adicione o link da sala</p>
+                    <p class="text-xs text-slate-300">Defina o título, instrutor, público-alvo, status e coloque o link da sala virtual em destaque</p>
                 </div>
                 <button onclick="logoutAdmin()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair do Admin
                 </button>
             </div>
 
-            <!-- New Training Form -->
+            <!-- New / Edit Form -->
             <form id="add-training-form" onsubmit="handleSaveTraining(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <input type="hidden" id="form-edit-id" value="">
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Data (Ex: 02/10 (Sex)) *</label>
-                    <input type="text" id="form-date" placeholder="Ex: 02/10 (Sex)" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Data (Ex: 01/10 (Qui)) *</label>
+                    <input type="text" id="form-date" placeholder="Ex: 01/10 (Qui)" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
                 </div>
 
                 <div>
@@ -215,10 +217,10 @@
                 </div>
 
                 <div class="md:col-span-2 lg:col-span-2">
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">
-                        <i class="fa-solid fa-video text-brandOrange-500 mr-1"></i> Link da Sala Virtual (Meet / Teams / Zoom)
+                    <label class="block text-xs font-semibold text-brandOrange-400 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-video text-brandOrange-500"></i> Link da Sala Virtual (Google Meet / Teams / Zoom)
                     </label>
-                    <input type="url" id="form-room-link" placeholder="https://meet.google.com/... ou https://teams.microsoft.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
+                    <input type="url" id="form-room-link" placeholder="Ex: https://meet.google.com/abc-defg-hij ou https://teams.microsoft.com/..." class="w-full bg-slate-800 border border-brandOrange-500/50 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brandOrange-500">
                 </div>
 
                 <div class="md:col-span-2 lg:col-span-3 flex justify-end gap-3 pt-2">
@@ -239,7 +241,7 @@
                         <i class="fa-solid fa-filter text-brandOrange-600"></i>
                         Filtros de Treinamentos
                     </h2>
-                    <p class="text-xs text-slate-500">Selecione uma função ou status para filtrar o cronograma</p>
+                    <p class="text-xs text-slate-500">Selecione uma função ou status para filtrar a lista</p>
                 </div>
 
                 <div class="flex items-center bg-slate-100 p-1 rounded-xl w-fit self-start lg:self-auto">
@@ -339,15 +341,15 @@
             <div id="table-view" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider font-semibold text-slate-600">
+                        <thead class="bg-slate-800 border-b border-slate-700 text-xs uppercase tracking-wider font-semibold text-white">
                             <tr>
+                                <th class="py-3.5 px-4">Acesso à Sala</th>
                                 <th class="py-3.5 px-4">Data</th>
                                 <th class="py-3.5 px-4">Horário</th>
                                 <th class="py-3.5 px-4">Treinamento</th>
                                 <th class="py-3.5 px-4">Público-Alvo</th>
                                 <th class="py-3.5 px-4">Instrutor</th>
                                 <th class="py-3.5 px-4">Status</th>
-                                <th class="py-3.5 px-4">Sala Virtual</th>
                                 <th class="py-3.5 px-4 no-print text-right">Ações Admin</th>
                             </tr>
                         </thead>
@@ -365,7 +367,7 @@
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <h3 class="text-xl font-bold text-slate-900">Acesso Restrito ao Administrador</h3>
-                <p class="text-xs text-slate-500 mt-1">Informe a senha para cadastrar, editar e alterar status dos treinamentos.</p>
+                <p class="text-xs text-slate-500 mt-1">Informe a senha para cadastrar, editar, definir links e alterar status.</p>
             </div>
 
             <form onsubmit="verifyAdminPassword(event)">
@@ -395,7 +397,7 @@
     <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 mt-12 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs">
             <p>© 2026 Setor de Treinamento e Desenvolvimento • Todos os direitos reservados</p>
-            <p class="mt-1 text-slate-500">Desenvolvido com suporte a salas virtuais, status e gerenciamento interativo</p>
+            <p class="mt-1 text-slate-500">Links para Sala Virtual em Destaque Direto • Gestão de Treinamentos de Outubro/2026</p>
         </div>
     </footer>
 
@@ -403,25 +405,25 @@
         const ADMIN_PASSWORD_HASH = "melhoria@2026";
         let isAdminLoggedIn = false;
 
-        // Default Training Dataset with Initial Statuses
+        // Default Training Dataset
         const initialTrainings = [
             // 01/10 (Qui)
-            { id: "1", date: "01/10 (Qui)", dayNum: "01", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "1", date: "01/10 (Qui)", dayNum: "01", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "https://meet.google.com/abc-defg-hij", status: "Agendado" },
             { id: "2", date: "01/10 (Qui)", dayNum: "01", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra", roomLink: "", status: "Agendado" },
 
             // 05/10 (Seg)
-            { id: "3", date: "05/10 (Seg)", dayNum: "05", time: "10h", title: "Acolhimento para Pacientes de Risco e Prioritários", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "3", date: "05/10 (Seg)", dayNum: "05", time: "10h", title: "Acolhimento para Pacientes de Risco e Prioritários", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "https://meet.google.com/xyz-uvwx-rst", status: "Agendado" },
             { id: "4", date: "05/10 (Seg)", dayNum: "05", time: "15h", title: "Direitos e Deveres do Paciente e Acompanhante", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
 
             // 06/10 (Ter)
             { id: "5", date: "06/10 (Ter)", dayNum: "06", time: "10h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Realizado" },
-            { id: "6", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Realizado" },
+            { id: "6", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "https://meet.google.com/abc-defg-hij", status: "Realizado" },
             { id: "7", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Realizado" },
             { id: "8", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Módulo 1 - Práticas Introdutórias e Higiene Pessoal", role: "ASG", instructor: "Lucas Castro", roomLink: "", status: "Realizado" },
             { id: "9", date: "06/10 (Ter)", dayNum: "06", time: "15h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Realizado" },
 
             // 07/10 (Qua)
-            { id: "10", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Primeiros Socorros", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
+            { id: "10", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Primeiros Socorros", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "https://teams.microsoft.com/l/meetup-join/example", status: "Agendado" },
             { id: "11", date: "07/10 (Qua)", dayNum: "07", time: "10h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
             { id: "12", date: "07/10 (Qua)", dayNum: "07", time: "15h", title: "Eventos Adversos", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
             { id: "13", date: "07/10 (Qua)", dayNum: "07", time: "15h", title: "Módulo 2 - Higienização e Desinfecção de Áreas e Equipamentos", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
@@ -429,7 +431,7 @@
 
             // 08/10 (Qui)
             { id: "15", date: "08/10 (Qui)", dayNum: "08", time: "10h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
-            { id: "16", date: "08/10 (Qui)", dayNum: "08", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "", status: "Agendado" },
+            { id: "16", date: "08/10 (Qui)", dayNum: "08", time: "10h", title: "Integra + Recepção", role: "Recepção", instructor: "Jorge Emanoel", roomLink: "https://meet.google.com/abc-defg-hij", status: "Agendado" },
             { id: "17", date: "08/10 (Qui)", dayNum: "08", time: "15h", title: "Integra + Enfermagem", role: "Enfermagem", instructor: "Fabiane Praxedes", roomLink: "", status: "Agendado" },
             { id: "18", date: "08/10 (Qui)", dayNum: "08", time: "15h", title: "Módulo 3 - Protocolos de Limpeza Específica", role: "ASG", instructor: "Hotelaria", roomLink: "", status: "Agendado" },
             { id: "19", date: "08/10 (Qui)", dayNum: "08", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" },
@@ -499,8 +501,7 @@
             { id: "63", date: "29/10 (Qui)", dayNum: "29", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" }
         ];
 
-        // Retrieve stored data or load defaults
-        let currentTrainings = JSON.parse(localStorage.getItem('outubro_2026_trainings_v2')) || initialTrainings;
+        let currentTrainings = JSON.parse(localStorage.getItem('outubro_2026_trainings_v3')) || initialTrainings;
 
         let selectedRole = 'todos';
         let selectedStatus = 'todos';
@@ -528,7 +529,7 @@
         });
 
         function saveData() {
-            localStorage.setItem('outubro_2026_trainings_v2', JSON.stringify(currentTrainings));
+            localStorage.setItem('outubro_2026_trainings_v3', JSON.stringify(currentTrainings));
             initStats();
             populateInstructors();
             applyFilters();
@@ -558,12 +559,12 @@
             if (pass === ADMIN_PASSWORD_HASH) {
                 isAdminLoggedIn = true;
                 closeAdminAuthModal();
-                
+
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-badge').classList.remove('hidden');
                 document.getElementById('admin-btn-text').innerText = 'Painel Admin (Ativo)';
                 document.getElementById('admin-lock-icon').className = 'fa-solid fa-unlock-keyhole';
-                
+
                 showToast("Modo Administrador ativado com sucesso!", "success");
                 applyFilters();
             } else {
@@ -598,7 +599,7 @@
             document.getElementById('form-status').value = target.status || 'Agendado';
 
             document.getElementById('form-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
-            
+
             const panel = document.getElementById('admin-panel');
             panel.classList.remove('hidden');
             panel.scrollIntoView({ behavior: 'smooth' });
@@ -620,7 +621,6 @@
             const dayNum = dayMatch ? (dayMatch[0].length === 1 ? '0' + dayMatch[0] : dayMatch[0]) : '01';
 
             if (editId) {
-                // Update existing training
                 const index = currentTrainings.findIndex(t => t.id === editId);
                 if (index !== -1) {
                     currentTrainings[index] = {
@@ -637,7 +637,6 @@
                     showToast("Treinamento atualizado com sucesso!", "success");
                 }
             } else {
-                // Add new training
                 const newItem = {
                     id: Date.now().toString(),
                     date,
@@ -659,7 +658,7 @@
 
         function deleteTraining(id) {
             if (!isAdminLoggedIn) return;
-            
+
             if (confirm("Deseja realmente remover este treinamento da agenda?")) {
                 currentTrainings = currentTrainings.filter(item => item.id !== id);
                 saveData();
@@ -804,22 +803,51 @@
                             </div>
                             <div>
                                 <h3 class="text-base font-bold text-slate-900">${dateStr}</h3>
-                                <p class="text-xs text-slate-500">${dayGroup.length} treinamento(s) listado(s)</p>
+                                <p class="text-xs text-slate-500">${dayGroup.length} treinamento(s) agendado(s)</p>
                             </div>
                         </div>
                     </div>
                 `;
 
                 let cardsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-                
+
                 dayGroup.forEach(item => {
                     const meta = getRoleMeta(item.role);
                     const stMeta = getStatusMeta(item.status || 'Agendado');
-                    const hasRoomLink = item.roomLink && item.roomLink.length > 5;
+                    const hasRoomLink = item.roomLink && item.roomLink.trim().length > 5;
 
                     cardsHtml += `
-                        <div class="flex flex-col justify-between p-4 rounded-xl border ${meta.border} ${meta.bg} relative group">
+                        <div class="flex flex-col justify-between p-4 rounded-xl border ${meta.border} ${meta.bg} relative group shadow-sm hover:shadow-md transition">
                             <div>
+                                <!-- PROMINENT VIRTUAL ROOM LINK AT THE TOP FRONT -->
+                                <div class="mb-3">
+                                    ${hasRoomLink ? `
+                                        <a href="${item.roomLink}" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-between gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-md transition transform hover:-translate-y-0.5">
+                                            <span class="flex items-center gap-2">
+                                                <span class="relative flex h-2.5 w-2.5">
+                                                  <span class="live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                                                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                                                </span>
+                                                <i class="fa-solid fa-video text-sm"></i>
+                                                <span>ACESSAR SALA VIRTUAL</span>
+                                            </span>
+                                            <i class="fa-solid fa-arrow-up-right-from-square text-xs opacity-80"></i>
+                                        </a>
+                                    ` : `
+                                        <div class="w-full flex items-center justify-between bg-slate-200/80 border border-slate-300 text-slate-600 text-xs px-3 py-1.5 rounded-xl">
+                                            <span class="flex items-center gap-1.5 font-medium">
+                                                <i class="fa-solid fa-building text-slate-400"></i>
+                                                Presencial / Link Pendente
+                                            </span>
+                                            ${isAdminLoggedIn ? `
+                                                <button onclick="editTraining('${item.id}')" class="text-[11px] font-bold text-brandOrange-600 hover:underline">
+                                                    + Add Link
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `}
+                                </div>
+
                                 <div class="flex items-center justify-between gap-1 mb-2">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-white text-slate-800 shadow-sm border border-slate-200">
                                         <i class="fa-regular fa-clock text-brandOrange-600"></i> ${item.time}
@@ -839,32 +867,22 @@
                                     </h4>
                                 </div>
 
-                                <div class="text-xs text-slate-600 flex items-center gap-1.5 mb-3">
+                                <div class="text-xs text-slate-600 flex items-center gap-1.5 mb-2">
                                     <i class="fa-solid fa-chalkboard-user text-slate-400"></i>
                                     <span>Instrutor: <strong>${item.instructor}</strong></span>
                                 </div>
                             </div>
 
-                            <div class="pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2 mt-2">
-                                ${hasRoomLink ? `
-                                    <a href="${item.roomLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">
-                                        <i class="fa-solid fa-video"></i> Acessar Sala
-                                    </a>
-                                ` : `
-                                    <span class="text-[11px] text-slate-400 italic">Presencial</span>
-                                `}
-
-                                ${isAdminLoggedIn ? `
-                                    <div class="flex items-center gap-1">
-                                        <button onclick="editTraining('${item.id}')" title="Editar Treinamento" class="text-brandBlue-700 hover:text-brandBlue-900 p-1.5 rounded hover:bg-white/80 transition text-xs font-semibold flex items-center gap-1">
-                                            <i class="fa-solid fa-pen-to-square"></i> Editar
-                                        </button>
-                                        <button onclick="deleteTraining('${item.id}')" title="Excluir" class="text-rose-600 hover:text-rose-800 p-1.5 rounded hover:bg-white/80 transition text-xs">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                ` : ''}
-                            </div>
+                            ${isAdminLoggedIn ? `
+                                <div class="pt-2 border-t border-slate-200/60 flex items-center justify-end gap-2 mt-2">
+                                    <button onclick="editTraining('${item.id}')" title="Editar Treinamento" class="text-brandBlue-700 hover:text-brandBlue-900 p-1.5 rounded hover:bg-white/80 transition text-xs font-semibold flex items-center gap-1">
+                                        <i class="fa-solid fa-pen-to-square"></i> Editar
+                                    </button>
+                                    <button onclick="deleteTraining('${item.id}')" title="Excluir" class="text-rose-600 hover:text-rose-800 p-1.5 rounded hover:bg-white/80 transition text-xs">
+                                        <i class="fa-solid fa-trash-can"></i> Rem
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 });
@@ -885,9 +903,18 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition";
 
-                const hasRoomLink = item.roomLink && item.roomLink.length > 5;
+                const hasRoomLink = item.roomLink && item.roomLink.trim().length > 5;
 
                 tr.innerHTML = `
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        ${hasRoomLink ? `
+                            <a href="${item.roomLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+                                <i class="fa-solid fa-video"></i> Acessar Sala
+                            </a>
+                        ` : `
+                            <span class="text-xs text-slate-400 italic">Presencial</span>
+                        `}
+                    </td>
                     <td class="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">${item.date}</td>
                     <td class="py-3 px-4 whitespace-nowrap">
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">
@@ -905,13 +932,6 @@
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${stMeta.bg}">
                             <i class="${stMeta.icon}"></i> ${stMeta.label}
                         </span>
-                    </td>
-                    <td class="py-3 px-4 whitespace-nowrap">
-                        ${hasRoomLink ? `
-                            <a href="${item.roomLink}" target="_blank" class="inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 transition">
-                                <i class="fa-solid fa-video"></i> Entrar na Sala
-                            </a>
-                        ` : '<span class="text-xs text-slate-400">Presencial</span>'}
                     </td>
                     <td class="py-3 px-4 no-print text-right whitespace-nowrap">
                         ${isAdminLoggedIn ? `
@@ -954,8 +974,8 @@
         function showToast(message, type = "info") {
             const toast = document.createElement('div');
             const bgClass = type === "success" ? "bg-emerald-600" : "bg-brandBlue-900";
-            
-            toast.className = `fixed bottom-5 right-5 ${bgClass} text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-white/20 text-xs font-semibold animate-bounce`;
+
+            toast.className = `fixed bottom-5 right-5 ${bgClass} text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-3 border border-white/20 text-xs font-semibold`;
             toast.innerHTML = `
                 <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'} text-base"></i>
                 <span>${message}</span>
