@@ -367,18 +367,25 @@
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <h3 class="text-xl font-bold text-slate-900">Acesso Restrito ao Administrador</h3>
-                <p class="text-xs text-slate-500 mt-1">Informe a senha para cadastrar, editar, definir links e alterar status.</p>
+                <p class="text-xs text-slate-500 mt-1">Entre com o e-mail e a senha do usuário administrador cadastrado no Supabase.</p>
             </div>
 
             <form onsubmit="verifyAdminPassword(event)">
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">E-mail do administrador</label>
+                    <div class="relative">
+                        <input type="email" id="admin-email-input" placeholder="seu.email@empresa.com" autocomplete="username" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandOrange-500 text-sm">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    </div>
+                </div>
                 <div class="mb-4">
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Senha de Acesso</label>
                     <div class="relative">
-                        <input type="password" id="admin-password-input" placeholder="Digite a senha..." required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandOrange-500 text-sm">
+                        <input type="password" id="admin-password-input" placeholder="Digite sua senha do Supabase Auth..." autocomplete="current-password" required class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandOrange-500 text-sm">
                         <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                     </div>
                     <p id="auth-error-msg" class="hidden text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1">
-                        <i class="fa-solid fa-circle-exclamation"></i> Senha incorreta! Tente novamente.
+                        <i class="fa-solid fa-circle-exclamation"></i> Não foi possível entrar. Confira o e-mail, a senha e o usuário criado no Supabase.
                     </p>
                 </div>
 
@@ -401,9 +408,13 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const ADMIN_PASSWORD_HASH = "melhoria@2026";
+        const SUPABASE_URL = "https://uwcskbqwdeuitflfenpd.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_Ga9xq3EscJZYadHVWf5sgA_1YC09T_2";
+        let supabaseClient = null;
         let isAdminLoggedIn = false;
+        let syncChannel = null;
 
         // Default Training Dataset
         const initialTrainings = [
@@ -501,7 +512,8 @@
             { id: "63", date: "29/10 (Qui)", dayNum: "29", time: "16h", title: "Integra + Médicos - ELETIVO", role: "Médicos", instructor: "Alessandra Feitoza", roomLink: "", status: "Agendado" }
         ];
 
-        let currentTrainings = JSON.parse(localStorage.getItem('outubro_2026_trainings_v3')) || initialTrainings;
+        let currentTrainings = [...initialTrainings];
+        let isLoadingFromSupabase = false;
 
         let selectedRole = 'todos';
         let selectedStatus = 'todos';
@@ -522,16 +534,124 @@
             'Cancelado': { label: 'Cancelado', bg: 'bg-rose-50 text-rose-800 border-rose-200', icon: 'fa-solid fa-ban' }
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                if (!window.supabase || !window.supabase.createClient) {
+                    throw new Error('Biblioteca do Supabase não carregou. Verifique sua conexão com a internet.');
+                }
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                if (sessionData && sessionData.session) {
+                    setAdminUI(true);
+                }
+
+                await loadTrainingData(true);
+
+                syncChannel = supabaseClient
+                    .channel('cronograma-treinamentos-live')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'cronograma_treinamentos' }, () => {
+                        loadTrainingData(false);
+                    })
+                    .subscribe();
+            } catch (err) {
+                console.error('Falha ao iniciar Supabase:', err);
+                showToast('Não foi possível conectar ao Supabase. Confira URL, chave e SQL.', 'info');
+                initStats();
+                populateInstructors();
+                applyFilters();
+            }
+        });
+
+        function rowToTraining(row) {
+            return {
+                id: String(row.id),
+                date: row.date_label || '',
+                dayNum: row.day_num || '',
+                time: row.time_label || '',
+                title: row.title || '',
+                role: row.role || 'Geral',
+                instructor: row.instructor || '',
+                roomLink: row.room_link || '',
+                status: row.status || 'Agendado'
+            };
+        }
+
+        function trainingToRow(item) {
+            return {
+                id: String(item.id),
+                date_label: item.date || '',
+                day_num: item.dayNum || '',
+                time_label: item.time || '',
+                title: item.title || '',
+                role: item.role || 'Geral',
+                instructor: item.instructor || '',
+                room_link: item.roomLink || '',
+                status: item.status || 'Agendado',
+                updated_at: new Date().toISOString()
+            };
+        }
+
+        async function loadTrainingData(showStatus = false) {
+            if (!supabaseClient) return;
+            isLoadingFromSupabase = true;
+            const { data, error } = await supabaseClient
+                .from('cronograma_treinamentos')
+                .select('*')
+                .order('date_label', { ascending: true }).order('time_label', { ascending: true });
+
+            isLoadingFromSupabase = false;
+            if (error) {
+                console.error('Erro ao carregar cronograma:', error);
+                if (showStatus) showToast('Erro ao ler o cronograma no Supabase. Execute o SQL fornecido.', 'info');
+                return;
+            }
+
+            currentTrainings = (data || []).map(rowToTraining);
             initStats();
             populateInstructors();
             applyFilters();
-        });
+            if (showStatus) showToast('Cronograma sincronizado com o Supabase.', 'success');
+        }
 
-        function saveData() {
-            localStorage.setItem('outubro_2026_trainings_v3', JSON.stringify(currentTrainings));
+        async function saveData() {
+            if (!supabaseClient) {
+                showToast('Supabase ainda não conectado. Nenhuma alteração foi salva.', 'info');
+                return false;
+            }
+            if (!isAdminLoggedIn) {
+                showToast('Entre como administrador para salvar alterações.', 'info');
+                return false;
+            }
+
+            const rows = currentTrainings.map(trainingToRow);
+            const { error } = await supabaseClient.from('cronograma_treinamentos').upsert(rows, { onConflict: 'id' });
+            if (error) {
+                console.error('Erro ao salvar cronograma:', error);
+                showToast('Erro ao salvar no Supabase: ' + error.message, 'info');
+                await loadTrainingData(false);
+                return false;
+            }
+
             initStats();
             populateInstructors();
+            applyFilters();
+            return true;
+        }
+
+        function setAdminUI(active) {
+            isAdminLoggedIn = active;
+            if (active) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-badge').classList.remove('hidden');
+                document.getElementById('admin-btn-text').innerText = 'Painel Admin (Ativo)';
+                document.getElementById('admin-lock-icon').className = 'fa-solid fa-unlock-keyhole';
+            } else {
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('admin-badge').classList.add('hidden');
+                document.getElementById('admin-btn-text').innerText = 'Painel do Administrador';
+                document.getElementById('admin-lock-icon').className = 'fa-solid fa-lock';
+            }
             applyFilters();
         }
 
@@ -542,7 +662,7 @@
                 panel.scrollIntoView({ behavior: 'smooth' });
             } else {
                 document.getElementById('auth-modal').classList.remove('hidden');
-                document.getElementById('admin-password-input').focus();
+                document.getElementById('admin-email-input').focus();
             }
         }
 
@@ -552,35 +672,36 @@
             document.getElementById('admin-password-input').value = '';
         }
 
-        function verifyAdminPassword(e) {
+        async function verifyAdminPassword(e) {
             e.preventDefault();
-            const pass = document.getElementById('admin-password-input').value;
-
-            if (pass === ADMIN_PASSWORD_HASH) {
-                isAdminLoggedIn = true;
-                closeAdminAuthModal();
-
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('admin-badge').classList.remove('hidden');
-                document.getElementById('admin-btn-text').innerText = 'Painel Admin (Ativo)';
-                document.getElementById('admin-lock-icon').className = 'fa-solid fa-unlock-keyhole';
-
-                showToast("Modo Administrador ativado com sucesso!", "success");
-                applyFilters();
-            } else {
+            if (!supabaseClient) {
                 document.getElementById('auth-error-msg').classList.remove('hidden');
+                return;
             }
+
+            const email = document.getElementById('admin-email-input').value.trim();
+            const password = document.getElementById('admin-password-input').value;
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error || !data || !data.session) {
+                console.error('Falha de autenticação administrativa:', error);
+                document.getElementById('auth-error-msg').classList.remove('hidden');
+                return;
+            }
+
+            setAdminUI(true);
+            closeAdminAuthModal();
+            showToast('Administrador autenticado no Supabase.', 'success');
         }
 
-        function logoutAdmin() {
-            isAdminLoggedIn = false;
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('admin-badge').classList.add('hidden');
-            document.getElementById('admin-btn-text').innerText = 'Painel do Administrador';
-            document.getElementById('admin-lock-icon').className = 'fa-solid fa-lock';
+        async function logoutAdmin() {
+            if (supabaseClient) {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) console.error('Erro ao encerrar sessão:', error);
+            }
+            setAdminUI(false);
             resetForm();
-            showToast("Sessão do administrador encerrada.", "info");
-            applyFilters();
+            showToast('Sessão do administrador encerrada.', 'info');
         }
 
         function editTraining(id) {
@@ -605,7 +726,7 @@
             panel.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function handleSaveTraining(e) {
+        async function handleSaveTraining(e) {
             e.preventDefault();
 
             const editId = document.getElementById('form-edit-id').value;
@@ -652,16 +773,25 @@
                 showToast("Novo treinamento cadastrado com sucesso!", "success");
             }
 
-            saveData();
-            resetForm();
+            const saved = await saveData();
+            if (saved) resetForm();
         }
 
-        function deleteTraining(id) {
+        async function deleteTraining(id) {
             if (!isAdminLoggedIn) return;
 
             if (confirm("Deseja realmente remover este treinamento da agenda?")) {
-                currentTrainings = currentTrainings.filter(item => item.id !== id);
-                saveData();
+                if (!supabaseClient || !isAdminLoggedIn) return;
+                const { error } = await supabaseClient.from('cronograma_treinamentos').delete().eq('id', String(id));
+                if (error) {
+                    console.error('Erro ao excluir treinamento:', error);
+                    showToast('Não foi possível excluir no Supabase: ' + error.message, 'info');
+                    return;
+                }
+                currentTrainings = currentTrainings.filter(item => String(item.id) !== String(id));
+                initStats();
+                populateInstructors();
+                applyFilters();
                 showToast("Treinamento removido com sucesso.", "info");
             }
         }
